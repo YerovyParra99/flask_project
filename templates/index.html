@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráfico de Línea</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .grafico-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Gráfico de Línea</h1>
+    </header>
+    
+    <div class="grafico-container">
+        <h2>Suma de Valores por Fecha</h2>
+        <img src="data:image/png;base64,{{ grafico_linea }}" alt="Gráfico de Línea">
+    </div>
+</body>
+</html>
