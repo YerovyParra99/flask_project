@@ -101,18 +101,32 @@ def add_grafico():
     return redirect(url_for('login'))
 
 
-@app.route('/edit_grafico/<id>', methods=['POST'])
+@app.route('/edit_grafico/<id>', methods=['GET', 'POST'])
 def edit_grafico(id):
     if 'role' in session and session['role'] == 'admin':
-        graficos.update_one({'_id': ObjectId(id)}, {'$set': {
-            'VALOR': request.form.get('valor'),
-            'UNIDAD': request.form.get('unidad'),
-            'VIGENCIADESDE': request.form.get('vigencia_desde'),
-            'VIGENCIAHASTA': request.form.get('vigencia_hasta')
-        }})
-        flash('Gráfico actualizado correctamente', 'success')
-        return redirect(url_for('dashboard'))
+        if request.method == 'GET':
+            # Obtener los datos del gráfico a editar
+            grafico = graficos.find_one({'_id': ObjectId(id)})
+            if grafico:
+                return render_template('edit_grafico.html', grafico=grafico)
+            flash('Gráfico no encontrado', 'danger')
+            return redirect(url_for('dashboard'))
+        
+        if request.method == 'POST':
+            # Actualizar los datos del gráfico
+            graficos.update_one({'_id': ObjectId(id)}, {'$set': {
+                'VALOR': request.form['valor'],
+                'UNIDAD': request.form['unidad'],
+                'VIGENCIADESDE': request.form['vigencia_desde'],
+                'VIGENCIAHASTA': request.form['vigencia_hasta']
+            }})
+            flash('Gráfico actualizado correctamente', 'success')
+            return redirect(url_for('dashboard'))
+    
+    flash('Acceso denegado', 'danger')
     return redirect(url_for('login'))
+
+
 
 
 @app.route('/delete_grafico/<id>', methods=['GET'])
@@ -133,17 +147,31 @@ def delete_user(id):
     return redirect(url_for('login'))
 
 
-@app.route('/edit_user/<id>', methods=['POST'])
+
+@app.route('/edit_user/<id>', methods=['GET', 'POST'])
 def edit_user(id):
     if 'role' in session and session['role'] == 'admin':
-        usuarios.update_one({'_id': ObjectId(id)}, {'$set': {
-            'nombre': request.form.get('nombre'),
-            'email': request.form.get('email'),
-            'role': request.form.get('role')
-        }})
-        flash('Usuario actualizado correctamente', 'success')
-        return redirect(url_for('dashboard'))
+        if request.method == 'GET':
+            # Obtener los datos del usuario a editar
+            usuario = usuarios.find_one({'_id': ObjectId(id)})
+            if usuario:
+                return render_template('edit_user.html', usuario=usuario)
+            flash('Usuario no encontrado', 'danger')
+            return redirect(url_for('dashboard'))
+        
+        if request.method == 'POST':
+            # Actualizar los datos del usuario
+            usuarios.update_one({'_id': ObjectId(id)}, {'$set': {
+                'nombre': request.form['nombre'],
+                'email': request.form['email'],
+                'role': request.form['role']
+            }})
+            flash('Usuario actualizado correctamente', 'success')
+            return redirect(url_for('dashboard'))
+    
+    flash('Acceso denegado', 'danger')
     return redirect(url_for('login'))
+
 
 
 # Ruta para generar y descargar el PDF
