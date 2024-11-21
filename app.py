@@ -86,10 +86,10 @@ def dashboard():
 @app.route('/add_grafico', methods=['POST'])
 def add_grafico():
     if 'role' in session and session['role'] == 'admin':
-        valor = request.form['valor']
-        unidad = request.form['unidad']
-        vigencia_desde = request.form['vigencia_desde']
-        vigencia_hasta = request.form['vigencia_hasta']
+        valor = request.form.get('valor')
+        unidad = request.form.get('unidad')
+        vigencia_desde = request.form.get('vigencia_desde')
+        vigencia_hasta = request.form.get('vigencia_hasta')
         graficos.insert_one({
             'VALOR': valor,
             'UNIDAD': unidad,
@@ -105,10 +105,10 @@ def add_grafico():
 def edit_grafico(id):
     if 'role' in session and session['role'] == 'admin':
         graficos.update_one({'_id': ObjectId(id)}, {'$set': {
-            'VALOR': request.form['valor'],
-            'UNIDAD': request.form['unidad'],
-            'VIGENCIADESDE': request.form['vigencia_desde'],
-            'VIGENCIAHASTA': request.form['vigencia_hasta']
+            'VALOR': request.form.get('valor'),
+            'UNIDAD': request.form.get('unidad'),
+            'VIGENCIADESDE': request.form.get('vigencia_desde'),
+            'VIGENCIAHASTA': request.form.get('vigencia_hasta')
         }})
         flash('Gráfico actualizado correctamente', 'success')
         return redirect(url_for('dashboard'))
@@ -123,35 +123,50 @@ def delete_grafico(id):
         return redirect(url_for('dashboard'))
     return redirect(url_for('login'))
 
+
+@app.route('/delete_user/<id>', methods=['GET'])
+def delete_user(id):
+    if 'role' in session and session['role'] == 'admin':
+        usuarios.delete_one({'_id': ObjectId(id)})
+        flash('Usuario eliminado correctamente', 'success')
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('login'))
+
+
+@app.route('/edit_user/<id>', methods=['POST'])
+def edit_user(id):
+    if 'role' in session and session['role'] == 'admin':
+        usuarios.update_one({'_id': ObjectId(id)}, {'$set': {
+            'nombre': request.form.get('nombre'),
+            'email': request.form.get('email'),
+            'role': request.form.get('role')
+        }})
+        flash('Usuario actualizado correctamente', 'success')
+        return redirect(url_for('dashboard'))
+    return redirect(url_for('login'))
+
+
 # Ruta para generar y descargar el PDF
 @app.route('/download_pdf')
 def download_pdf():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    # Consultar los datos de la colección de gráficos
     data = graficos.find()
-
-    # Crear un buffer para generar el PDF
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer)
 
-    # Configurar el PDF
     pdf.setTitle("Datos de la Colección Gráficos")
-
-    # Título del PDF
     pdf.setFont("Helvetica-Bold", 16)
     pdf.drawString(200, 800, "Datos de la Colección Gráficos")
 
-    # Encabezados de tabla
     pdf.setFont("Helvetica-Bold", 12)
     pdf.drawString(50, 750, "Valor")
     pdf.drawString(150, 750, "Unidad")
     pdf.drawString(250, 750, "Vigencia Desde")
     pdf.drawString(400, 750, "Vigencia Hasta")
 
-    # Dibujar los datos
-    y = 730  # Posición inicial
+    y = 730
     pdf.setFont("Helvetica", 10)
     for grafico in data:
         pdf.drawString(50, y, str(grafico['VALOR']))
@@ -159,15 +174,14 @@ def download_pdf():
         pdf.drawString(250, y, grafico['VIGENCIADESDE'])
         pdf.drawString(400, y, grafico['VIGENCIAHASTA'])
         y -= 20
-        if y < 50:  # Crear una nueva página si se llena
+        if y < 50:
             pdf.showPage()
             y = 800
 
     pdf.save()
-
-    # Devolver el PDF como respuesta
     buffer.seek(0)
     return Response(buffer, mimetype='application/pdf', headers={"Content-Disposition": "attachment;filename=datos_graficos.pdf"})
+
 
 # Cerrar sesión
 @app.route('/logout')
@@ -179,3 +193,4 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
